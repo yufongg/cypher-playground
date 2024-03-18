@@ -25,7 +25,7 @@ router.post('/raw', async (req, res) => {
     res.send(await executeQuery(query))
 })
 
-router.post('/characters', async (req, res, next ) => {
+router.post('/create/characters', async (req, res, next ) => {
     const name = req.body.name
     if(!name){
         return next("No name was provided")
@@ -33,7 +33,7 @@ router.post('/characters', async (req, res, next ) => {
     res.send(await executeQuery(`CREATE (c:Character {name: '${name}'}) return c`))
 })
 
-router.post('/places', async (req, res, next ) => {
+router.post('/create/places', async (req, res, next ) => {
     const name = req.body.name
     if(!name){
         return next("No name was provided")
@@ -41,7 +41,7 @@ router.post('/places', async (req, res, next ) => {
     res.send(await executeQuery(`CREATE (p:Place {name: '${name}'}) return p`))
 })
 
-router.get('/characters', async (req, res) => {
+router.get('/all/characters', async (req, res) => {
     res.send(await executeQuery('MATCH (c:Character) return c'))
 })
 
@@ -61,7 +61,7 @@ router.get('/places/id/:id', async (req, res) => {
     res.send(await executeQuery('MATCH (p:Place) WHERE id(p) = ' + id + ' RETURN p'))
 })
 
-router.get('/places', async (req, res) => {
+router.get('/all/places', async (req, res) => {
     res.send(await executeQuery('MATCH (p:Place) return p'))
 })
 
@@ -106,5 +106,73 @@ router.get('/internal-api/keys.txt', async (req, res) => {
     const secret = "Krabby Patty Secret Formula - DO NOT EXPOSE AT ANY CIRCUMSTANCES"
     res.send(secret)
 })
+
+router.route('/characters')
+    .get(async (req, res) => {
+        const id = req.query.id;
+        const name = req.query.name;
+
+        if (!id && !name) {
+            return res.status(400).json({ error: "No id or name was provided" });
+        }
+
+        if (id) {
+            // Query by id
+            res.send(await executeQuery('MATCH (c:Character) WHERE id(c) = ' + id + ' RETURN c'));
+        } else {
+            // Query by name
+            res.send(await executeQuery("MATCH (c:Character) WHERE c.name = '" + name + "' RETURN c"));
+        }
+    })
+    .post(async (req, res) => {
+        const id = req.body.id;
+        const name = req.body.name;
+
+        if (!id && !name) {
+            return res.status(400).json({ error: "No id or name was provided" });
+        }
+
+        if (id) {
+            // Check if id is provided, then query by id
+            res.send(await executeQuery('MATCH (c:Character) WHERE id(c) = ' + id + ' RETURN c'));
+        } else {
+            // Otherwise, query by name
+            res.send(await executeQuery("MATCH (c:Character) WHERE c.name = '" + name + "' RETURN c"));
+        }
+    });
+
+router.route('/places')
+    .get(async (req, res) => {
+        const id = req.query.id;
+        const name = req.query.name;
+
+        if (!id && !name) {
+            return res.status(400).json({ error: "No id or name was provided" });
+        }
+
+        if (id) {
+            // Query by id
+            res.send(await executeQuery('MATCH (p:Place) WHERE id(p) = ' + id + ' RETURN p'));
+        } else {
+            // Query by name
+            res.send(await executeQuery("MATCH (p:Place) WHERE p.name = '" + name + "' RETURN p"));
+        }
+    })
+    .post(async (req, res) => {
+        const id = req.body.id;
+        const name = req.body.name;
+
+        if (!id && !name) {
+            return res.status(400).json({ error: "No id or name was provided" });
+        }
+
+        if (id) {
+            // Check if id is provided, then query by id
+            res.send(await executeQuery('MATCH (p:Place) WHERE id(p) = ' + id + ' RETURN p'));
+        } else {
+            // Otherwise, query by name
+            res.send(await executeQuery("MATCH (p:Place) WHERE p.name = '" + name + "' RETURN p"));
+        }
+    });
 
 module.exports = router;
